@@ -7,7 +7,7 @@ A Sublime Text plugin aimed at making writing PHPUnit tests less painful.
 1. Download the file
 2. Unarchive the file in Sublime Text [packages folder](http://sublimetext.info/docs/en/extensibility/packages.html)
 
-The new menus and coommand palette options should appear in yout Sublime Text installation
+The new menus and command palette options should appear in yout Sublime Text installation
 
 ## Usage
 
