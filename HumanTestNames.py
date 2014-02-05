@@ -8,7 +8,7 @@ class HumanTestNamesCommand(sublime_plugin.TextCommand):
                     s = self.view.substr(region)
                     # split the text in lines
                     lines = s.splitlines()
-                    newLines = 'newLines'
+                    newLines = ''
                     for line in lines:
                         # transform to uppercase
                         s = line.title()
@@ -17,7 +17,7 @@ class HumanTestNamesCommand(sublime_plugin.TextCommand):
                         # prepend text
                         s = 'public function test' + s
                         # append text
-                        plcHolder = "$this->markTestIncomplete(\n'This test has not been implemented yet.'\n');"
+                        plcHolder = "$this->markTestIncomplete('This test has not been implemented yet.'\n\t);"
                         s = s + "()\n{\n" + plcHolder + "\n}\n\n"
                         # append modified line
                         newLines = newLines + s
