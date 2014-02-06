@@ -17,7 +17,7 @@ class HumanTestNamesCommand(sublime_plugin.TextCommand):
                         # prepend text
                         s = 'public function test' + s
                         # append text
-                        plcHolder = "\t$this->markTestIncomplete('This test has not been implemented yet.');"
+                        plcHolder ="\n\t$this->markTestIncomplete('This test has not been implemented yet.');"
                         s = s + "()\n{\n" + plcHolder + "\n}\n"
                         # append modified line
                         newLines = newLines + s
