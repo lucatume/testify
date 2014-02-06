@@ -18,8 +18,10 @@ class HumanTestNamesCommand(sublime_plugin.TextCommand):
                         s = 'public function test' + s
                         # append text
                         plcHolder = "\t$this->markTestIncomplete('This test has not been implemented yet.');"
-                        s = s + "()\n{\n" + plcHolder + "\n}\n\n"
+                        s = s + "()\n{\n" + plcHolder + "\n}\n"
                         # append modified line
                         newLines = newLines + s
                     # replace in text
                     self.view.replace(edit, region, newLines)
+                    # reindent output
+                    self.view.run_command('reindent')
