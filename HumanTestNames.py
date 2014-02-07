@@ -98,4 +98,5 @@ class DataProviderGenerator:
         out += '\n/**'
         out += '\n * @dataProvider ' + dataProviderMethodName
         out += '\n*/'
+        out += '\n'
         return out
