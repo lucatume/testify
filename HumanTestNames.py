@@ -1,4 +1,3 @@
-import sublime
 import sublime_plugin
 import re
 
@@ -15,14 +14,16 @@ class HumanTestNamesCommand(sublime_plugin.TextCommand):
                     # split the text in lines
                     lines = s.splitlines()
                     newLines = ''
+                    # init the generators
+                    dp = DataProviderGenerator()
                     for line in lines:
+                        #set the generators
+                        dp.setText(line)
                         out = ''
                         pre = ''
                         testMethodName = ''
                         testMethodBody = ''
                         post = ''
-                        # get new generator instances
-                        dp = DataProviderGenerator(line)
                         variableName = ''
                         # check for the data provider token
                         if dp.containsDataProviderToken():
@@ -48,7 +49,7 @@ class TestMethodGenerator:
     def __init__(self, text, variableName=''):
         self.variableName = variableName
         if variableName != '':
-            self.variableName = '$'+variableName
+            self.variableName = '$' + variableName
         self.text = self.removeGeneratorTokensFrom(text)
 
     def removeGeneratorTokensFrom(self, text):
@@ -70,9 +71,12 @@ class TestMethodGenerator:
         out += '\n}\n'
         return out
 
-class DataProviderGenerator:
 
-    def __init__(self, text):
+class DataProviderGenerator:
+    generatedDataProviderMethodNames = []
+    text = ''
+
+    def setText(self, text):
         self.text = text
 
     def containsDataProviderToken(self):
@@ -86,18 +90,26 @@ class DataProviderGenerator:
         out = re.sub('\\s', '', out)
         return out
 
-    def getDataProviderMethodTextAndCommentBlock(self):
-        dataProviderMethodName = self.getVariableName() + 'Provider'
-        dataProviderMethodNameWithParenthesis = dataProviderMethodName + '()'
+    def getDataProviderCommentBlock(self, dataProviderMethodName):
         out = ''
-        out += '\npublic function ' + dataProviderMethodNameWithParenthesis
-        out += '\n{'
-        out += '\n\treturn array('
-        out += '\n\t\t// ' + self.getVariableName()
-        out += '\n\t);'
-        out += '\n}'
         out += '\n\t/**'
         out += '\n\t * @dataProvider ' + dataProviderMethodName
         out += '\n\t */'
         out += '\n'
+        return out
+
+    def getDataProviderMethodTextAndCommentBlock(self):
+        out = ''
+        dataProviderMethodName = self.getVariableName() + 'Provider'
+        dataProviderMethodNameWithParenthesis = dataProviderMethodName + '()'
+        # check to see if same data provider method has been generated before
+        if dataProviderMethodName not in self.generatedDataProviderMethodNames:
+            self.generatedDataProviderMethodNames.append(dataProviderMethodName)
+            out += '\npublic function ' + dataProviderMethodNameWithParenthesis
+            out += '\n{'
+            out += '\n\treturn array('
+            out += '\n\t\t// ' + self.getVariableName()
+            out += '\n\t);'
+            out += '\n}\n'
+        out += self.getDataProviderCommentBlock(dataProviderMethodName)
         return out
