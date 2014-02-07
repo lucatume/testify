@@ -87,9 +87,10 @@ class DataProviderGenerator:
         return out
 
     def getDataProviderMethodTextAndCommentBlock(self):
-        dataProviderMethodName = self.getVariableName() + 'Provider()'
+        dataProviderMethodName = self.getVariableName() + 'Provider'
+        dataProviderMethodNameWithParenthesis = dataProviderMethodName + '()'
         out = ''
-        out += '\npublic function ' + dataProviderMethodName
+        out += '\npublic function ' + dataProviderMethodNameWithParenthesis
         out += '\n{'
         out += '\n\treturn array('
         out += '\n\t\t// ' + self.getVariableName()
