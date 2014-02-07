@@ -95,8 +95,8 @@ class DataProviderGenerator:
         out += '\n\t\t// ' + self.getVariableName()
         out += '\n\t);'
         out += '\n}'
-        out += '\n/**'
-        out += '\n * @dataProvider ' + dataProviderMethodName
-        out += '\n*/'
+        out += '\n\t/**'
+        out += '\n\t * @dataProvider ' + dataProviderMethodName
+        out += '\n\t */'
         out += '\n'
         return out
