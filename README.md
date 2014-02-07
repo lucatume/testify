@@ -42,3 +42,44 @@ and will transform those in proper [PHPUnit](http://phpunit.de/) test methods li
     }
 
 using camelCase notation.
+
+### Data Providers
+Enclosing a string with the <code>#</code> symbol will mark the enclosed string as a data provider argument like
+
+    will throw for some #bad string# arguments
+
+will make the plugin pick up the <code>bad string</code> text as the one to use to generate the corresponding data provider
+
+    public function badStringProvider()
+    {
+        return array(
+        // badString
+            );
+    }
+    /**
+     * @dataProvider badStringProvider
+     */
+    public function testWillThrowForSomeBadStringArguments($badString)
+    {
+        $this->markTestIncomplete('This test has not been implemented yet.');
+    }
+
+The same would happen if the closing <code>#</code> symbol is not present, the plugin will simply pick-up everything until the end of the string. The sentence
+
+    will throw for some #bad arguments
+
+will result in
+
+    public function badArgumentsProvider()
+    {
+        return array(
+        // badArguments
+            );
+    }
+    /**
+     * @dataProvider badArgumentsProvider
+     */
+    public function testWillThrowForSomeBadArguments($badArguments)
+    {
+        $this->markTestIncomplete('This test has not been implemented yet.');
+    }
