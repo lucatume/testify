@@ -102,7 +102,7 @@ class DataProviderGenerator:
         out = ''
         dataProviderMethodName = self.getVariableName() + 'Provider'
         dataProviderMethodNameWithParenthesis = dataProviderMethodName + '()'
-        # check to see if same data provider method has been generated before
+        # if same data provider method has been generated before skip
         if dataProviderMethodName not in self.generatedDataProviderMethodNames:
             self.generatedDataProviderMethodNames.append(dataProviderMethodName)
             out += '\npublic function ' + dataProviderMethodNameWithParenthesis
@@ -111,5 +111,6 @@ class DataProviderGenerator:
             out += '\n\t\t// ' + self.getVariableName()
             out += '\n\t);'
             out += '\n}\n'
+        # generate the comment block
         out += self.getDataProviderCommentBlock(dataProviderMethodName)
         return out
