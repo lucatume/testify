@@ -67,7 +67,9 @@ class TestMethodGenerator:
 
     def __init__(self, text, variables=''):
         self.variables = variables
-        self.text = text
+        nonTextSeparators = (',', ', ', ' ,')
+        pattern = '|'.join(nonTextSeparators)
+        self.text = re.sub(pattern, '', text)
 
     def getTestMethodName(self):
         cc = CamelCase(self.text)
