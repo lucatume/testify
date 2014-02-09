@@ -14,22 +14,27 @@ class HumanTestNamesCommand(sublime_plugin.TextCommand):
                     # split the text in lines
                     lines = s.splitlines()
                     newLines = ''
-                    # init the generators
-                    dp = DataProviderGenerator()
+                    # init the method manager
+                    manager = MethodManager()
                     for line in lines:
-                        #set the generators
-                        dp.setText(line)
+                        # init the data provider generator
+                        dp = DataProviderGenerator(line, manager)
+                        # init the outputs
                         out = ''
+                        # what comes before the actual test method
                         pre = ''
+                        # '$arg1, $arg2, $arg3'
+                        variablesString = ''
+                        # 'testMethodWillDoForSomething'
                         testMethodName = ''
+                        # the method body and its signature
                         testMethodBody = ''
                         post = ''
-                        variableName = ''
                         # check for the data provider token
-                        if dp.containsDataProviderToken():
-                            pre += dp.getDataProviderMethodTextAndCommentBlock()
-                            variableName = dp.getVariableName()
-                        tg = TestMethodGenerator(line, variableName)
+                        if dp.containsToken():
+                            pre += dp.getPre()
+                            variablesString = dp.getVariablesString()
+                        tg = TestMethodGenerator(line, variablesString)
                         testMethodName = tg.getTestMethodName()
                         testMethodBody = tg.getTestMethodBody()
                         out += pre
@@ -44,24 +49,31 @@ class HumanTestNamesCommand(sublime_plugin.TextCommand):
                     self.view.run_command('reindent')
 
 
+class MethodManager:
+    generatedMethods = []
+
+    def add(self, methodName):
+        if methodName in self.generatedMethods:
+            return
+        self.generatedMethods.append(methodName)
+
+    def contains(self, methodName):
+        if methodName in self.generatedMethods:
+            return True
+        return False
+
+
 class TestMethodGenerator:
 
-    def __init__(self, text, variableName=''):
-        self.variableName = variableName
-        if variableName != '':
-            self.variableName = '$' + variableName
-        self.text = self.removeGeneratorTokensFrom(text)
-
-    def removeGeneratorTokensFrom(self, text):
-        return re.sub("#", "", text)
+    def __init__(self, text, variables=''):
+        self.variables = variables
+        self.text = text
 
     def getTestMethodName(self):
-        # make a title
-        out = self.text.title().strip()
-        # remove spaces
-        out = re.sub("\\s+", "", out)
+        cc = CamelCase(self.text)
+        out = cc.uFirst()
         out = 'public function test' + out
-        out += '(' + self.variableName + ')\n'
+        out += '(' + self.variables + ')\n'
         return out
 
     def getTestMethodBody(self):
@@ -75,22 +87,42 @@ class TestMethodGenerator:
 class DataProviderGenerator:
     generatedDataProviderMethodNames = []
     text = ''
+    variables = []
+    methodManager = None
 
-    def setText(self, text):
+    def __init__(self, text, methodManager):
         self.text = text
+        self.methodManager = methodManager
+        self.openTokens = (' for ', ' with ')
+        self.subTokens = (' and ', ', ')
 
-    def containsDataProviderToken(self):
-        # search for the opening token
-        return re.search("\\s+#", self.text)
+    def containsToken(self):
+        for token in self.openTokens:
+            if token in self.text:
+                return True
+        return False
 
-    def getVariableName(self):
-        out = re.sub("(.*)\\s+#([^#]*)\\s*(.*)", "\\2", self.text)
-        out = out.strip().title()
-        out = out[0].lower() + out[1:]
-        out = re.sub('\\s', '', out)
+    def chopStringUsing(self, string, tokens):
+        out = ''
+        pattern = '|'.join(tokens)
+        out = re.split(pattern, string)
         return out
 
-    def getDataProviderCommentBlock(self, dataProviderMethodName):
+    def setVariables(self):
+        # get the part of the line after the token
+        variables = re.sub("(.*)\\s+(for|with)\\s+(.*)\\s*", "\\3", self.text)
+        # split the line using the sub-tokens
+        self.variables = self.chopStringUsing(variables, self.subTokens)
+
+    def getVariablesString(self):
+        out = []
+        for v in self.variables:
+            cc = CamelCase(v)
+            out.append('$' + cc.lFirst())
+        out = ', '.join(out)
+        return out
+
+    def getCommentBlock(self, dataProviderMethodName):
         out = ''
         out += '\n\t/**'
         out += '\n\t * @dataProvider ' + dataProviderMethodName
@@ -98,19 +130,48 @@ class DataProviderGenerator:
         out += '\n'
         return out
 
-    def getDataProviderMethodTextAndCommentBlock(self):
+    def getMethodName(self):
         out = ''
-        dataProviderMethodName = self.getVariableName() + 'Provider'
-        dataProviderMethodNameWithParenthesis = dataProviderMethodName + '()'
+        out = 'And'.join(self.variables)
+        cc = CamelCase(out)
+        out = cc.uFirst()
+        out += 'Provider'
+        return out
+
+    def getPre(self):
+        out = ''
+        self.setVariables()
+        variablesString = self.getVariablesString()
+        dataProviderMethodName = self.getMethodName()
+        methodNameWithParenthesis = dataProviderMethodName + '()'
         # if same data provider method has been generated before skip
-        if dataProviderMethodName not in self.generatedDataProviderMethodNames:
-            self.generatedDataProviderMethodNames.append(dataProviderMethodName)
-            out += '\npublic function ' + dataProviderMethodNameWithParenthesis
+        if not self.methodManager.contains(dataProviderMethodName):
+            self.methodManager.add(dataProviderMethodName)
+            out += '\npublic function ' + methodNameWithParenthesis
             out += '\n{'
             out += '\n\treturn array('
-            out += '\n\t\t// ' + self.getVariableName()
+            out += '\n\t\t// ' + variablesString
             out += '\n\t);'
             out += '\n}\n'
         # generate the comment block
-        out += self.getDataProviderCommentBlock(dataProviderMethodName)
+        out += self.getCommentBlock(dataProviderMethodName)
+        return out
+
+
+class CamelCase:
+    text = ''
+
+    def __init__(self, text):
+        self.text = text
+
+    def uFirst(self):
+        out = ''
+        out = self.text.strip().title()
+        out = re.sub('\\s', '', out)
+        return out
+
+    def lFirst(self):
+        out = ''
+        out = self.uFirst()
+        out = out[0].lower() + out[1:]
         return out
