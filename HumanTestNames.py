@@ -34,7 +34,7 @@ class HumanTestNamesCommand(sublime_plugin.TextCommand):
                         if dp.containsToken():
                             pre += dp.getPre()
                             variables = dp.getVariables()
-                        tg = TestMethodGenerator(line, variables)
+                        tg = TestMethodGenerator(line, variables, StringChainer())
                         testMethodName = tg.getTestMethodName()
                         testMethodBody = tg.getTestMethodBody()
                         out += pre
@@ -94,19 +94,19 @@ class TestMethodGenerator:
     variables = []
     stringChainer = None
 
-    def __init__(self, text, variables):
+    def __init__(self, text, variables, stringChainer):
         self.variables = variables
         nonTextSeparators = (',', ', ', ' ,')
         pattern = '|'.join(nonTextSeparators)
         self.text = re.sub(pattern, '', text)
         # remove and put in dep in
-        self.stringChainer = StringChainer()
+        self.stringChainer = stringChainer
 
     def getTestMethodName(self):
         cc = CamelCase(self.text)
         out = cc.uFirst()
         out = 'public function test' + out
-        varsString = self.stringChainer.chain(self.variables,'$', ', ')
+        varsString = self.stringChainer.chain(self.variables, '$', ', ')
         out += '(' + varsString + ')\n'
         return out
 
