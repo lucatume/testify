@@ -14,29 +14,56 @@ The new menus and command palette options should appear in yout Sublime Text ins
 ### Natural language test names
 The plugin will take test method names written in natural language
 
-    should throw for this
+    should throw for something
     should not call that when called with this
     constructor properly sets some value
     constructor will not do something
+    some method should fail with foo, baz and bar
 
 and will transform those in proper [PHPUnit](http://phpunit.de/) test methods like
 
-    public function testShouldThrowForThis()
+    public function SomethingProvider()
+    {
+        return array(
+        // $something
+        );
+    }
+
+    /**
+     * @dataProvider SomethingProvider
+     */
+    public function testShouldThrowForThis($something)
     {
         $this->markTestIncomplete('This test has not been implemented yet.');
     }
 
-    public function testShouldNotCallThatWhenCalledWithThis()
+    /**
+     * @dataProvider ThisProvider
+     */
+    public function testShouldNotCallThatWhenCalledWithThis($this)
     {
         $this->markTestIncomplete('This test has not been implemented yet.');
     }
-
     public function testConstructorProperlySetsSomeValue()
     {
         $this->markTestIncomplete('This test has not been implemented yet.');
     }
-
     public function testConstructorWillNotDoSomething()
+    {
+        $this->markTestIncomplete('This test has not been implemented yet.');
+    }
+
+    public function FooBazBarProvider()
+    {
+        return array(
+        // $foo, $baz, $bar
+        );
+    }
+
+    /**
+     * @dataProvider FooBazBarProvider
+     */
+    public function testSomeMethodShouldFailWithFooBazAndBar($foo, $baz, $bar)
     {
         $this->markTestIncomplete('This test has not been implemented yet.');
     }
@@ -44,42 +71,5 @@ and will transform those in proper [PHPUnit](http://phpunit.de/) test methods li
 using camelCase notation.
 
 ### Data Providers
-Enclosing a string with the <code>#</code> symbol will mark the enclosed string as a data provider argument like
-
-    will throw for some #bad string# arguments
-
-will make the plugin pick up the <code>bad string</code> text as the one to use to generate the corresponding data provider
-
-    public function badStringProvider()
-    {
-        return array(
-        // badString
-            );
-    }
-    /**
-     * @dataProvider badStringProvider
-     */
-    public function testWillThrowForSomeBadStringArguments($badString)
-    {
-        $this->markTestIncomplete('This test has not been implemented yet.');
-    }
-
-The same would happen if the closing <code>#</code> symbol is not present, the plugin will simply pick-up everything until the end of the string. The sentence
-
-    will throw for some #bad arguments
-
-will result in
-
-    public function badArgumentsProvider()
-    {
-        return array(
-        // badArguments
-            );
-    }
-    /**
-     * @dataProvider badArgumentsProvider
-     */
-    public function testWillThrowForSomeBadArguments($badArguments)
-    {
-        $this->markTestIncomplete('This test has not been implemented yet.');
-    }
+The plugin will presume that lines containing the words <code>with</code> or <code>for</code> are for tests that will require a <code>dataProvider</code> method and will generate the data provider and the associated variables by default as seen in the first, second and fifth line above.  
+The plugin will also avoid generating duplicate data provider methods.
