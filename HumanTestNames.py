@@ -24,7 +24,7 @@ class HumanTestNamesCommand(sublime_plugin.TextCommand):
                         # what comes before the actual test method
                         pre = ''
                         # '$arg1, $arg2, $arg3'
-                        variablesString = ''
+                        variables = []
                         # 'testMethodWillDoForSomething'
                         testMethodName = ''
                         # the method body and its signature
@@ -33,8 +33,8 @@ class HumanTestNamesCommand(sublime_plugin.TextCommand):
                         # check for the data provider token
                         if dp.containsToken():
                             pre += dp.getPre()
-                            variablesString = dp.getVariablesString()
-                        tg = TestMethodGenerator(line, variablesString)
+                            variables = dp.getVariables()
+                        tg = TestMethodGenerator(line, variables)
                         testMethodName = tg.getTestMethodName()
                         testMethodBody = tg.getTestMethodBody()
                         out += pre
@@ -63,19 +63,51 @@ class MethodManager:
         return False
 
 
-class TestMethodGenerator:
+class StringChainer():
 
-    def __init__(self, text, variables=''):
+    def uchain(self, strings, pre='', sep='', post=''):
+        out = ''
+        buf = []
+        for string in strings:
+            buf.append(pre + string.title() + post)
+        out = sep.join(buf)
+        return out
+
+    def chain(self, strings, pre='', sep='', post=''):
+        out = ''
+        buf = []
+        for string in strings:
+            buf.append(pre + string + post)
+        out = sep.join(buf)
+        return out
+
+    def lchain(self, strings, pre='', sep='', post=''):
+        out = ''
+        buf = []
+        for string in strings:
+            buf.append(pre + string[0].lower() + string[1:] + post)
+        out = sep.join(buf)
+        return out
+
+
+class TestMethodGenerator:
+    variables = []
+    stringChainer = None
+
+    def __init__(self, text, variables):
         self.variables = variables
         nonTextSeparators = (',', ', ', ' ,')
         pattern = '|'.join(nonTextSeparators)
         self.text = re.sub(pattern, '', text)
+        # remove and put in dep in
+        self.stringChainer = StringChainer()
 
     def getTestMethodName(self):
         cc = CamelCase(self.text)
         out = cc.uFirst()
         out = 'public function test' + out
-        out += '(' + self.variables + ')\n'
+        varsString = self.stringChainer.uchain(self.variables)
+        out += '(' + varsString + ')\n'
         return out
 
     def getTestMethodBody(self):
@@ -97,6 +129,9 @@ class DataProviderGenerator:
         self.methodManager = methodManager
         self.openTokens = (' for ', ' with ')
         self.subTokens = (' and ', ', ')
+
+    def getVariables(self):
+        return self.variables
 
     def containsToken(self):
         for token in self.openTokens:
