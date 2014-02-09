@@ -95,10 +95,10 @@ class OptionsManager:
     def getNonTextSeparators(self):
         return (',', ', ', ' ,')
 
-    def getSeparators(self):
+    def getDataProviderSeparators(self):
         return ('for', 'with')
 
-    def getSubSeparators(self):
+    def getDataProviderSubSeparators(self):
         return (' and ', ', ')
 
 
@@ -148,7 +148,7 @@ class DataProviderGenerator:
         return self.variables
 
     def containsToken(self):
-        for token in self.optionsManager.getSeparators():
+        for token in self.optionsManager.getDataProviderSeparators():
             if token in self.text:
                 return True
         return False
@@ -161,10 +161,10 @@ class DataProviderGenerator:
 
     def setVariables(self):
         # get the part of the line after the token
-        separators = '|'.join(self.optionsManager.getSeparators())
+        separators = '|'.join(self.optionsManager.getDataProviderSeparators())
         variables = re.sub("(.*)\\s+(" + separators + ")\\s+(.*)\\s*", "\\3", self.text)
         # split the line using the sub-tokens
-        self.variables = self.chopStringUsing(variables, self.optionsManager.getSubSeparators())
+        self.variables = self.chopStringUsing(variables, self.optionsManager.getDataProviderSubSeparators())
 
     def getVariablesString(self):
         out = ''
