@@ -106,7 +106,7 @@ class TestMethodGenerator:
         cc = CamelCase(self.text)
         out = cc.uFirst()
         out = 'public function test' + out
-        varsString = self.stringChainer.uchain(self.variables)
+        varsString = self.stringChainer.chain(self.variables,'$', ', ')
         out += '(' + varsString + ')\n'
         return out
 
