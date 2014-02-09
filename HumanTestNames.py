@@ -131,10 +131,10 @@ class DataProviderGenerator:
         return out
 
     def getMethodName(self):
-        out = ''
-        out = 'And'.join(self.variables)
-        cc = CamelCase(out)
-        out = cc.uFirst()
+        out = []
+        for v in self.variables:
+            out.append(v.title())
+        out = 'And'.join(out)
         out += 'Provider'
         return out
 
@@ -166,6 +166,8 @@ class CamelCase:
 
     def uFirst(self):
         out = ''
+        if len(out) is 1:
+            return out.upper()
         out = self.text.strip().title()
         out = re.sub('\\s', '', out)
         return out
