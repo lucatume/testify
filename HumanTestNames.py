@@ -18,7 +18,7 @@ class HumanTestNamesCommand(sublime_plugin.TextCommand):
                     manager = MethodManager()
                     for line in lines:
                         # init the data provider generator
-                        dp = DataProviderGenerator(line, manager)
+                        dp = DataProviderGenerator(line, manager, StringChainer(), OptionsManager())
                         # init the outputs
                         out = ''
                         # what comes before the actual test method
@@ -34,7 +34,7 @@ class HumanTestNamesCommand(sublime_plugin.TextCommand):
                         if dp.containsToken():
                             pre += dp.getPre()
                             variables = dp.getVariables()
-                        tg = TestMethodGenerator(line, variables, StringChainer())
+                        tg = TestMethodGenerator(line, variables, StringChainer(), OptionsManager())
                         testMethodName = tg.getTestMethodName()
                         testMethodBody = tg.getTestMethodBody()
                         out += pre
@@ -90,14 +90,27 @@ class StringChainer():
         return out
 
 
+class OptionsManager:
+
+    def getNonTextSeparators(self):
+        return (',', ', ', ' ,')
+
+    def getSeparators(self):
+        return ('for', 'with')
+
+    def getSubSeparators(self):
+        return (' and ', ', ')
+
+
 class TestMethodGenerator:
     variables = []
     stringChainer = None
+    optionsManager = None
 
-    def __init__(self, text, variables, stringChainer):
+    def __init__(self, text, variables, stringChainer, optionsManager):
         self.variables = variables
-        nonTextSeparators = (',', ', ', ' ,')
-        pattern = '|'.join(nonTextSeparators)
+        self.optionsManager = optionsManager
+        pattern = '|'.join(self.optionsManager.getNonTextSeparators())
         self.text = re.sub(pattern, '', text)
         # remove and put in dep in
         self.stringChainer = stringChainer
@@ -123,18 +136,19 @@ class DataProviderGenerator:
     text = ''
     variables = []
     methodManager = None
+    optionsManager = None
 
-    def __init__(self, text, methodManager):
+    def __init__(self, text, methodManager, stringChainer, optionsManager):
         self.text = text
         self.methodManager = methodManager
-        self.openTokens = (' for ', ' with ')
-        self.subTokens = (' and ', ', ')
+        self.stringChainer = stringChainer
+        self.optionsManager = optionsManager
 
     def getVariables(self):
         return self.variables
 
     def containsToken(self):
-        for token in self.openTokens:
+        for token in self.optionsManager.getSeparators():
             if token in self.text:
                 return True
         return False
@@ -147,16 +161,14 @@ class DataProviderGenerator:
 
     def setVariables(self):
         # get the part of the line after the token
-        variables = re.sub("(.*)\\s+(for|with)\\s+(.*)\\s*", "\\3", self.text)
+        separators = '|'.join(self.optionsManager.getSeparators())
+        variables = re.sub("(.*)\\s+(" + separators + ")\\s+(.*)\\s*", "\\3", self.text)
         # split the line using the sub-tokens
-        self.variables = self.chopStringUsing(variables, self.subTokens)
+        self.variables = self.chopStringUsing(variables, self.optionsManager.getSubSeparators())
 
     def getVariablesString(self):
-        out = []
-        for v in self.variables:
-            cc = CamelCase(v)
-            out.append('$' + cc.lFirst())
-        out = ', '.join(out)
+        out = ''
+        out = self.stringChainer.chain(self.variables, '$', ', ')
         return out
 
     def getCommentBlock(self, dataProviderMethodName):
@@ -168,10 +180,8 @@ class DataProviderGenerator:
         return out
 
     def getMethodName(self):
-        out = []
-        for v in self.variables:
-            out.append(v.title())
-        out = 'And'.join(out)
+        out = ''
+        out = self.stringChainer.uchain(self.variables)
         out += 'Provider'
         return out
 
