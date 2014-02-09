@@ -167,7 +167,8 @@ class DataProviderGenerator:
         self.variables = self.chopStringUsing(variables, self.optionsManager.getDataProviderSubSeparators())
         buf = []
         for variableString in self.variables:
-            buf.append(re.sub('\\s', '', variableString))
+            cc = CamelCase(variableString)
+            buf.append(cc.lFirst())
         self.variables = buf
 
     def getVariablesString(self):
@@ -185,7 +186,7 @@ class DataProviderGenerator:
 
     def getMethodName(self):
         out = ''
-        out = self.stringChainer.uchain(self.variables)
+        out = self.stringChainer.chain(self.variables)
         out += 'Provider'
         return out
 
