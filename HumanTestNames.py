@@ -134,6 +134,7 @@ class TestMethodGenerator:
 class DataProviderGenerator:
     generatedDataProviderMethodNames = []
     text = ''
+    variablesText = ''
     variables = []
     methodManager = None
     optionsManager = None
@@ -163,6 +164,7 @@ class DataProviderGenerator:
         # get the part of the line after the token
         separators = '|'.join(self.optionsManager.getDataProviderSeparators())
         variables = re.sub("(.*)\\s+(" + separators + ")\\s+(.*)\\s*", "\\3", self.text)
+        self.variablesText = variables
         # split the line using the sub-tokens
         self.variables = self.chopStringUsing(variables, self.optionsManager.getDataProviderSubSeparators())
         buf = []
@@ -186,7 +188,8 @@ class DataProviderGenerator:
 
     def getMethodName(self):
         out = ''
-        out = self.stringChainer.chain(self.variables)
+        cc = CamelCase(self.variablesText)
+        out = cc.uFirst()
         out += 'Provider'
         return out
 
