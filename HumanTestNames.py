@@ -188,7 +188,8 @@ class DataProviderGenerator:
 
     def getMethodName(self):
         out = ''
-        cc = CamelCase(self.variablesText)
+        escapedVariablesText = re.sub("[^\\w\\s_]", "", self.variablesText)
+        cc = CamelCase(escapedVariablesText)
         out = cc.uFirst()
         out += 'Provider'
         return out
