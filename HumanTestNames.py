@@ -31,7 +31,7 @@ class HumanTestNamesCommand(sublime_plugin.TextCommand):
                         testMethodBody = ''
                         post = ''
                         # check for the data provider token
-                        if dp.containsToken():
+                        if dp.containsToken() and dp.shouldGenerate():
                             pre += dp.getPre()
                             variables = dp.getVariables()
                         tg = TestMethodGenerator(line, variables, StringChainer(), OptionsManager())
@@ -101,6 +101,8 @@ class OptionsManager:
     def getDataProviderSubSeparators(self):
         return (' and ', ', ')
 
+    def getDataProviderMethodGenerationNegationChars(self):
+        return ('-')
 
 class TestMethodGenerator:
     variables = []
@@ -110,8 +112,13 @@ class TestMethodGenerator:
     def __init__(self, text, variables, stringChainer, optionsManager):
         self.variables = variables
         self.optionsManager = optionsManager
-        pattern = '|'.join(self.optionsManager.getNonTextSeparators())
+        charsToStrip = self.optionsManager.getNonTextSeparators()
+        pattern = '|'.join(charsToStrip)
         self.text = re.sub(pattern, '', text)
+        # strip any leading or trailing data provider method generation
+        # negation char
+        for char in self.optionsManager.getDataProviderMethodGenerationNegationChars():
+            self.text = self.text.strip(char)
         # remove and put in dep in
         self.stringChainer = stringChainer
 
@@ -212,6 +219,14 @@ class DataProviderGenerator:
         # generate the comment block
         out += self.getCommentBlock(dataProviderMethodName)
         return out
+
+    def shouldGenerate(self):
+        for negationChar in self.optionsManager.getDataProviderMethodGenerationNegationChars():
+            # look for the negation char at the end of the line
+            pattern = '^.*' + negationChar + '$'
+            if re.search(pattern, self.text):
+                return False
+        return True
 
 
 class CamelCase:
