@@ -73,3 +73,36 @@ using camelCase notation.
 ### Data Providers
 The plugin will presume that lines containing the words <code>with</code> or <code>for</code> are for tests that will require a <code>dataProvider</code> method and will generate the data provider and the associated variables by default as seen in the first, second and fifth line above.  
 The plugin will also avoid generating duplicate data provider methods.
+Appending a trailing <code>-</code> to the line will prevent the plugin from generating a test method
+
+    add default throws for null value argument-
+
+will generate
+
+    public function testAddDefaultThrowsForNullValueArgument()
+    {
+        $this->markTestIncomplete('This test has not been implemented yet.');
+    }
+
+while 
+
+    add default throws for null value argument
+
+will generate the test method and the data provider method as well
+
+    public function NullValueArgumentProvider()
+    {
+        return array(
+        // $nullValueArgument
+        );
+    }
+
+    /**
+    * @dataProvider NullValueArgumentProvider
+    */
+    public function testAddDefaultThrowsForNullValueArgument($nullValueArgument)
+    {
+        $this->markTestIncomplete('This test has not been implemented yet.');
+    }
+
+which might not always be the desired result.
