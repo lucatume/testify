@@ -24,8 +24,9 @@ and will transform those in proper [PHPUnit](http://phpunit.de/) test methods li
 
     public function SomethingProvider()
     {
-        return array(
         // $something
+        return array(
+            array(null)
         );
     }
 
@@ -55,8 +56,9 @@ and will transform those in proper [PHPUnit](http://phpunit.de/) test methods li
 
     public function FooBazBarProvider()
     {
-        return array(
         // $foo, $baz, $bar
+        return array(
+            array(null, null, null)
         );
     }
 
@@ -92,8 +94,9 @@ would generate the test method and the data provider method as well
 
     public function NullValueArgumentProvider()
     {
-        return array(
         // $nullValueArgument
+        return array(
+            array(null)
         );
     }
 
