@@ -71,9 +71,9 @@ and will transform those in proper [PHPUnit](http://phpunit.de/) test methods li
 using camelCase notation.
 
 ### Data Providers
-The plugin will presume that lines containing the words <code>with</code> or <code>for</code> are for tests that will require a <code>dataProvider</code> method and will generate the data provider and the associated variables by default as seen in the first, second and fifth line above.  
+The plugin will presume that lines containing the words <code>with</code> or <code>for</code> are for tests that will require a <code>dataProvider</code> method and will generate the data provider and the associated variables by default as seen in the first, second and fifth line above.
 The plugin will also avoid generating duplicate data provider methods.
-Appending a trailing <code>-</code> to the line will prevent the plugin from generating a test method
+Appending a trailing <code>-</code> to the line will prevent the plugin from generating a data provider method
 
     add default throws for null value argument-
 
@@ -88,7 +88,7 @@ while
 
     add default throws for null value argument
 
-will generate the test method and the data provider method as well
+would generate the test method and the data provider method as well
 
     public function NullValueArgumentProvider()
     {
