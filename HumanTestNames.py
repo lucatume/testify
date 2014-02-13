@@ -204,7 +204,6 @@ class DataProviderGenerator:
     def getPre(self):
         out = ''
         self.setVariables()
-        variablesString = self.getVariablesString()
         dataProviderMethodName = self.getMethodName()
         methodNameWithParenthesis = dataProviderMethodName + '()'
         # if same data provider method has been generated before skip
@@ -212,8 +211,9 @@ class DataProviderGenerator:
             self.methodManager.add(dataProviderMethodName)
             out += '\npublic function ' + methodNameWithParenthesis
             out += '\n{'
+            out += self.getVariableCommentLine()
             out += '\n\treturn array('
-            out += '\n\t\t// ' + variablesString
+            out += self.getVariableNullArray()
             out += '\n\t);'
             out += '\n}\n'
         # generate the comment block
@@ -227,6 +227,21 @@ class DataProviderGenerator:
             if re.search(pattern, self.text):
                 return False
         return True
+
+    def getVariableCommentLine(self):
+        out = ''
+        # create the comment line
+        out = '\n\t\t// ' + self.getVariablesString()
+        # append to out
+        return out
+
+    def getVariableNullArray(self):
+        out = ''
+        out += '\n\t\t array('
+        nulls = ['null' for i in range(len(self.variables))]
+        out += ', '.join(nulls)
+        out += ')'
+        return out
 
 
 class CamelCase:
